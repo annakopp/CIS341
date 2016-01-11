@@ -940,9 +940,14 @@ let ctxt2 : ctxt = [("x", 2l); ("y", 7l)]  (* maps "x" to 2l, "y" to 7l *)
  * raise the Not_found exception 
  *)
 let rec lookup (x:string) (c:ctxt) : int32 =
-failwith "unimplemented"
-
-
+  begin match c with
+    | (variable, value)::t ->
+        if x = variable then
+          value
+        else
+          lookup x t
+    | [] -> raise Not_found
+  end
 
 (* 
  * Problem 4-3
