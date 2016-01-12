@@ -975,7 +975,13 @@ let rec lookup (x:string) (c:ctxt) : int32 =
  *)        
 
 let rec interpret (c:ctxt) (e:exp) : int32 =
-  failwith "unimplemented"
+  begin match e with
+    | Var k -> lookup k c
+    | Const l -> l
+    | Add(e1,e2) -> Int32.add (interpret c e1) (interpret c e2)
+    | Mult(e1,e2) -> Int32.mul (interpret c e1) (interpret c e2)
+    | Neg(e1) -> Int32.neg (interpret c e1)
+  end
 
 
 (*
