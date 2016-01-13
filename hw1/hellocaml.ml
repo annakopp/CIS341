@@ -1022,8 +1022,32 @@ let rec interpret (c:ctxt) (e:exp) : int32 =
  *)   
 
 let rec optimize (e:exp) : exp =
-failwith "optimize unimplemented"  
-  
+  begin match e with
+    | Add(e1, e2) ->
+        begin match (e1, e2) with
+          | (Const 0l, _) -> optimize e2
+          | (_, Const 0l) -> optimize e1
+          | (Const l, Const k) -> Const (Int32.add l k)
+          | (Const l, _) -> optimize(Add(Const l, optimize e2))
+          | (_, Const l) -> optimize(Add(Const l, optimize e2))
+          | (_, _) -> Add(optimize e1, optimize e2)
+        end
+    | Mult(e1, e2) ->
+        begin match (e1, e2) with
+          | (Const 0l, _) -> Const 0l
+          | (_, Const 0l) -> Const 0l
+          | (Const 1l, _) -> optimize e2
+          | (_, Const 1l) -> optimize e1
+          | (Const l, Const k) -> Const (Int32.mul l k)
+          | (Const l, _) -> optimize(Mult(Const l, optimize e2))
+          | (_, Const l) -> optimize(Mult(Const l, optimize e2))
+          | (_, _) -> Mult(optimize e1, optimize e2)
+        end
+    | Neg(e1) -> Neg(optimize e1)
+    | Var k -> Var k
+    | Const l -> Const l
+  end
+
 
 (*
  * The interpreter for the expression language above is simple, but
@@ -1169,8 +1193,13 @@ let ans1 = run [] p1
  *    function to glue together two programs.
  *)
 let rec compile (e:exp) : program =
-failwith "compile unimplemented"  
-
+  begin match e with
+    | Add(e1, e2) -> ((compile e1) @ (compile e2)) @ [IAdd]
+    | Mult(e1, e2) -> ((compile e1) @ (compile e2)) @ [IMul]
+    | Neg(e2) -> INeg::(compile e2)
+    | Var k -> [IPushV k]
+    | Const l -> [IPushC l]
+  end
 
 
 (************)
